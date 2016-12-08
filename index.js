@@ -14,7 +14,7 @@ var http = require('http');
 const rowNum = 3;
 const columnNum = 3;
 
-var clients = []; //login users.
+var clients = {};
 var userNames = [];
 var grids = Grids.create({rowNum: rowNum, columnNum:columnNum});
 
@@ -52,8 +52,8 @@ wsServer.on('request', function(request) {
       return;
     }
     var connection = request.accept('echo-protocol', request.origin);
-    var index = clients.push(connection) - 1;
     var userName;
+    var clientId;
 
     /*if(history.length > 0){
     	var obj = {
@@ -62,6 +62,11 @@ wsServer.on('request', function(request) {
     	}
     	connection.sendUTF(JSON.stringify(obj));
     }*/
+    var broadcast = function(obj){
+        Object.keys(clients).map(function(key){
+            clients[key].sendUTF(JSON.stringify(obj));
+        })
+    }
 
 
     var _logOut = function(){
@@ -82,9 +87,7 @@ wsServer.on('request', function(request) {
             type: 'coworkerlist',
             value: userNames
         };
-        for(var i=0; i<clients.length; i++){
-            clients[i].sendUTF(JSON.stringify(obj));
-        }
+        broadcast(obj);
     }
 
     connection.on('message', function(message) {
@@ -94,6 +97,10 @@ wsServer.on('request', function(request) {
 
         var msg = JSON.parse(message.utf8Data);
         switch(msg.type){
+            case 'setId':
+                clientId = msg.value;
+                clients[clientId] = connection;
+                break;
         	case 'login':
         		userName = msg.value;
         		userNames.push(userName);
@@ -110,9 +117,7 @@ wsServer.on('request', function(request) {
         			type: 'coworkerlist',
         			value: userNames
         		};
-        		for(var i=0; i<clients.length; i++){
-        			clients[i].sendUTF(JSON.stringify(obj));
-        		}
+        		broadcast(obj);
         		break;
 
         	case 'logout':
@@ -153,7 +158,7 @@ wsServer.on('request', function(request) {
         }
     });
     connection.on('close', function(reasonCode, description) {
-        clients.splice(index, 1); 
+        delete clients[clientId];
 		_logOut();
     });
 });
