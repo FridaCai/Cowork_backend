@@ -14,21 +14,15 @@ var http = require('http');
 const rowNum = 3;
 const columnNum = 3;
 
-var clients, userNames, grids;
-
-var initData = function(){
-	clients = []; //login users.
-	userNames = [];
-	grids = Grids.create({rowNum: rowNum, columnNum:columnNum});
-}
-initData();
-
+var clients = []; //login users.
+var userNames = [];
+var grids = Grids.create({rowNum: rowNum, columnNum:columnNum});
 
 var server = http.createServer(function(request, response) {
 	if(request.url === '/status'){
 		response.writeHead(200, {'Content-Type': 'application/json'});
 		var responseObject = {
-		
+		  coworkers: userNames,
 		}
 		response.end(JSON.stringify(responseObject));
 	}else{
@@ -50,6 +44,8 @@ function originIsAllowed(origin) {
   return true;
 }
 
+
+
 wsServer.on('request', function(request) {
     if (!originIsAllowed(request.origin)) {
       request.reject();
@@ -66,6 +62,30 @@ wsServer.on('request', function(request) {
     	}
     	connection.sendUTF(JSON.stringify(obj));
     }*/
+
+
+    var _logOut = function(){
+        var userNameIndex = userNames.indexOf(userName);
+        if(userNameIndex !=-1){
+            userNames.splice(userNameIndex, 1); 
+        }
+
+
+        var obj = {
+            type: "logoutResponse",
+            value: -1
+        }
+        connection.sendUTF(JSON.stringify(obj));
+
+
+        var obj = {
+            type: 'coworkerlist',
+            value: userNames
+        };
+        for(var i=0; i<clients.length; i++){
+            clients[i].sendUTF(JSON.stringify(obj));
+        }
+    }
 
     connection.on('message', function(message) {
         if(message.type != 'utf8'){
@@ -96,30 +116,7 @@ wsServer.on('request', function(request) {
         		break;
 
         	case 'logout':
-        		userName = msg.value;
-        		var index = userNames.indexOf(userName);
-        		userNames.splice(index, 1);
-
-
-
-        		var obj = {
-        			type: "logoutResponse",
-        			value: -1
-        		}
-        		connection.sendUTF(JSON.stringify(obj));
-
-
-
-
-
-        		var obj = {
-        			type: 'coworkerlist',
-        			value: userNames
-        		};
-
-        		for(var i=0; i<clients.length; i++){
-        			clients[i].sendUTF(JSON.stringify(obj));
-        		}
+        		_logOut();
         		break;
 
 
@@ -156,12 +153,7 @@ wsServer.on('request', function(request) {
         }
     });
     connection.on('close', function(reasonCode, description) {
-		clients.splice(index, 1); 
-
-		var userNameIndex = userNames.indexOf(userName);
-		if(userNameIndex !=-1){
-			userNames.splice(userNameIndex, 1);	
-		}
-		
+        clients.splice(index, 1); 
+		_logOut();
     });
 });
