@@ -1,5 +1,20 @@
 {
+  "name": "coworker",
+  "version": "0.0.0",
+  "description": "coworker",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:FridaCai/Coworker_backend.git"
+  },
+  "author": "FridaCai",
+  "license": "ISC",
   "dependencies": {
-    "websocket": "^1.0.23"
+       "websocket": "^1.0.23"
+  },
+  "devDependencies": {
+    
   }
 }
