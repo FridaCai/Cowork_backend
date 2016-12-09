@@ -22,6 +22,9 @@ module.exports = class Grids extends Array{
 			})
 		})
 	}
+	getGrid(line, column){
+		return this[line][column];
+	}
 	static create(param){
 		var grids = new Grids();
 		grids.init(param);

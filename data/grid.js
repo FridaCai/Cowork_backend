@@ -4,14 +4,23 @@ module.exports = class Grid{
 
 	}
 	init(param){
+		this.status = param ? param.status : 3; //1:foucs, 2:change, 3:blur. 
 		this.label = param ? param.label : "";
-		this.takenBy = param ? param.takenBy : "";
+		this.user = param ? param.user : null;
 	}
 	dump(){
 		return {
+			status: this.status,
 			label: this.label,
-			takenBy: this.takenBy
+			user: this.user ? this.user.dump():{}
 		}
+	}
+	update(status, label, user){
+		this.status = status;
+		if(label){
+			this.label = label;	
+		}
+		this.user = user;
 	}
 	static create(param){
 		var grid = new Grid();
